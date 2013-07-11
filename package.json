@@ -1,0 +1,34 @@
+{
+  "name": "playbill",
+  "description": "Simple, Node.js-based, markdown-powered blogging platform.",
+  "version": "0.0.1",
+  "private": true,
+  "author": {
+    "name": "David Straub",
+    "email": "Scinvention@gmail.com"
+  },
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node ./node_modules/.bin/mocha"
+  },
+  "dependencies": {
+    "express": "~3.2.6",
+    "marked": "~0.2.9",
+    "when": "~2.1.1",
+    "underscore": "~1.4.4",
+    "js-yaml": "~2.1.0",
+    "graceful-fs": "~1.2.2",
+    "array-query": "~0.1.0",
+    "html-truncate": "~1.0.3"
+  },
+  "devDependencies": {
+    "mocha": "~1.11.0",
+    "chai": "~1.7.1",
+    "mocha-as-promised": "~1.4.0",
+    "chai-as-promised": "~3.3.1",
+    "sinon": "~1.7.3",
+    "sinon-chai": "~2.4.0",
+    "supertest": "~0.7.1"
+  }
+}

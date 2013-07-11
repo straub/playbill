@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <title><%= !listView ? (post.title || 'Post') : 'List View' %></title>
+
+        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.0/underscore-min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min.js"></script>
+
+        <script>
+            window.define = function(factory) {
+                try{ delete window.define; } catch(e){ window.define = void 0; } // IE
+                window.when = factory();
+            };
+            window.define.amd = {};
+        </script>
+        <!-- Couldn't find this on a CDN. :( -->
+        <script src="/blog/public/js/vendor/when.js"></script>
+
+        <script src="/blog/playbill.js"></script>
+        <script>
+        $(document).ready(function () {
+            var $container = $('.posts'),
+                $paging = $('.paging');
+
+            var playbill = new Playbill({
+                base: '/blog'
+            });
+
+            playbill.start();
+
+            playbill.on('loading', function (url) {
+                $container.text('Loading '+url);
+                $paging.find('.next, .previous').hide();
+            });
+            playbill.on('loaded', function (data) {
+                if (data.posts && _.isArray(data.posts)) {
+                    var $list = $('<ol />');
+
+                    if (data.posts.length) {
+                        _.each(data.posts, function (post) {
+                            var $item = $('<li />');
+                            $item.html(post.html);
+                            $list.append($item);
+                        });
+
+                        $container.html($list);
+                    } else {
+                        $container.text('No posts found.');
+                    }
+                    if (data.pages > data.currentPage) {
+                        $paging.find('.next a').attr({
+                            href: playbill.base + '/p' + (data.currentPage+1) + '/'
+                        });
+                        $paging.find('.next').show();
+                    }
+                    if (data.currentPage > 1) {
+                        $paging.find('.previous a').attr({
+                            href: playbill.base + (data.currentPage === 2 ? '/' : ('/p' + (data.currentPage-1)+ '/'))
+                        });
+                        $paging.find('.previous').show();
+                    }
+                    $paging.show();
+
+                    document.title = 'List View';
+                } else {
+                    $container.html(data.html);
+                    $paging.hide();
+
+                    document.title = data.title || 'Post';
+                }
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Blog</h1>
+            </header>
+
+            <hr />
+
+            <div class="posts">
+                <% if (!listView) { %>
+                    <% include post %>
+                <% } else { %>
+                    <% include list %>
+                <% } %>
+            </div>
+            <div class="paging" <% if (currentPage === 0 || (currentPage === 1 && pages === 1)) { %>style="display: none;"<% } %>>
+                <span class="previous" <% if (currentPage <= 1) { %>style="display: none;"<% } %>><a href="/blog/<%= currentPage === 2 ? '' : ('p' + (currentPage - 1) + '/') %>">&laquo; Previous</a></span>
+                <span class="next" <% if (pages <= currentPage) { %>style="display: none;"<% } %>><a href="/blog/<%= 'p' + (currentPage + 1) + '/' %>">Next &raquo;</a></span>
+            </div>
+
+            <hr />
+
+            <footer>
+                Powered by <a href="http://github.com/straub/playbill">Playbill</a>
+            </footer>
+        </div>
+    </body>
+</html>

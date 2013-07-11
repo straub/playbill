@@ -1,0 +1,11 @@
+<% if (posts.length) { %>
+    <ol>
+    <% posts.forEach(function (post) { %>
+        <li>
+            <% include post %>
+        </li>
+    <% }); %>
+    </ol>
+<% } else { %>
+    No posts found.
+<% } %>

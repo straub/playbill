@@ -1,0 +1,6 @@
+<% if (!listView) { %>
+    <h1><%= post.title || 'Post' %></h1>
+<% } else { %>
+    <h2><a href="/blog/<%= post.slug %>"><%= post.title || 'Post' %></a></h2>
+<% } %>
+<%- listView ? truncate(post.html, 150) : post.html %>
