@@ -47,6 +47,7 @@ describe('HTTP', function () {
 
                     res.body.posts.should.be.an('array');
                     res.body.posts.should.not.be.empty;
+                    res.body.total.should.be.a('number');
 
                     done();
                 });
@@ -90,6 +91,7 @@ describe('HTTP', function () {
 
                     res.body.posts.should.be.an('array');
                     res.body.posts.should.not.be.empty;
+                    res.body.total.should.be.a('number');
 
                     done();
                 });
