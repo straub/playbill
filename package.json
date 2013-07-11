@@ -1,11 +1,11 @@
 {
   "name": "playbill",
   "description": "Simple, Node.js-based, markdown-powered blogging platform",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "David Straub",
     "email": "himself@davidstraub.com",
-    "url" : "http://www.davidstraub.com/"
+    "url": "http://www.davidstraub.com/"
   },
   "main": "app.js",
   "scripts": {
