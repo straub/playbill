@@ -1,17 +1,28 @@
 {
   "name": "playbill",
-  "description": "Simple, Node.js-based, markdown-powered blogging platform.",
+  "description": "Simple, Node.js-based, markdown-powered blogging platform",
   "version": "0.0.1",
-  "private": true,
   "author": {
     "name": "David Straub",
-    "email": "Scinvention@gmail.com"
+    "email": "himself@davidstraub.com",
+    "url" : "http://www.davidstraub.com/"
   },
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "test": "node ./node_modules/.bin/mocha"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/straub/playbill.git"
+  },
+  "homepage": "http://github.com/straub/playbill",
+  "bugs": "http://github.com/straub/playbill/issues",
+  "keywords": [
+    "blog",
+    "markdown",
+    "simple"
+  ],
   "dependencies": {
     "express": "~3.2.6",
     "marked": "~0.2.9",
@@ -30,5 +41,6 @@
     "sinon": "~1.7.3",
     "sinon-chai": "~2.4.0",
     "supertest": "~0.7.1"
-  }
+  },
+  "license": "MIT"
 }
