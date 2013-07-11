@@ -142,7 +142,7 @@ Playbill.prototype.listPosts = function listPosts(options) {
         total = posts.length;
 
         // Apply query options.
-        posts = arrayQuery()
+        posts = arrayQuery('published').is(true)
         .sort('created').date().desc()
         .sort('title')
         .on(posts);
@@ -256,7 +256,7 @@ Playbill.metaRegex = /^(---[\s\S]+)---/;
 
 var promiseStat = nodefn.lift(fs.stat);
 
-Playbill.liftMeta = ['title','created'];
+Playbill.liftMeta = ['title','created','published'];
 
 Playbill.prototype._parseMeta = function _parseMeta(post) {
     var playbill = this;

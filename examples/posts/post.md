@@ -1,5 +1,6 @@
 ---
 title: Test Post 2
+published: !!bool 'yes'
 ---
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent malesuada iaculis pretium. Fusce tellus mauris, tempor a justo sed, volutpat tristique sapien. Quisque cursus pretium tortor nec tincidunt. Sed sollicitudin magna eu semper viverra. Integer posuere tristique risus vitae tempus. Quisque adipiscing, odio id aliquam scelerisque, nisl ipsum placerat tellus, ornare malesuada enim ante interdum nibh. Donec dapibus condimentum scelerisque. Duis varius ipsum vitae turpis fermentum consequat. Curabitur sapien nisi, aliquam quis aliquam eget, volutpat nec neque. Etiam vehicula a massa vitae molestie. Morbi ac sollicitudin risus. Nunc ut dolor rhoncus, sodales tortor quis, lobortis nisi. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 
