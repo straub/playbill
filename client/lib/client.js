@@ -95,8 +95,6 @@
         return playbill;
     };
 
-    var popped = ('state' in window.history && window.history.state), initialURL = location.href;
-
     Playbill.prototype._checkUrl = function (e) {
         var playbill = this;
 
