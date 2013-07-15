@@ -55,7 +55,9 @@ describe('HTTP', function () {
         });
     });
     describe('GET /p:page/', function () {
-        var url = '/p1/';
+        var url = '/p1/',
+            badUrl = '/p0/',
+            tooHighUrl = '/p100000/';
 
         describe('html', function () {
             it('should respond with html', function (done) {
@@ -96,6 +98,17 @@ describe('HTTP', function () {
                     done();
                 });
             });
+        });
+
+        it('should not find posts at bad url', function (done) {
+            request
+            .get(badUrl)
+            .expect(404, function (err) { done(); });
+        });
+        it('should not find posts at too high page number', function (done) {
+            request
+            .get(tooHighUrl)
+            .expect(404, function (err) { done(); });
         });
     });
     describe('GET /:slug', function () {

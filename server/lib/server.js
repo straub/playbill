@@ -68,8 +68,8 @@ Playbill.prototype.init = function init(app) {
     var getPostsRoute = _getPosts.call(playbill, app);
     app.get('/', getPostsRoute);
     app.get('/.:type(json)', getPostsRoute);
-    app.get('/p:page(\\d+)/', getPostsRoute);
-    app.get('/p:page(\\d+)/.:type(json)', getPostsRoute);
+    app.get('/p:page([1-9][0-9]{0,})/', getPostsRoute);
+    app.get('/p:page([1-9][0-9]{0,})/.:type(json)', getPostsRoute);
 
     var getPostRoute = _getPost.call(playbill, app);
     app.get('/:slug([\\w-]+)', getPostRoute);
@@ -97,17 +97,24 @@ function _isReadable(path) {
 }
 
 Playbill.prototype.listPosts = function listPosts(options) {
-    var playbill = this;
-
-    options = options || {};
-    options.page = options.page || 1;
-    options.perPage = options.perPage || playbill.perPage;
-
-    var limit = options.perPage,
-        offset = options.perPage * (options.page - 1),
+    var playbill = this,
+        limit,
+        offset,
         total;
 
-    return promiseReadDir(playbill.filePath)
+    options = options || {};
+
+    return when(options)
+    .then(function (options) {
+        options.page = options.page || 1;
+        options.perPage = options.perPage || playbill.perPage;
+
+        limit = options.perPage;
+        offset = options.perPage * (options.page - 1);
+    })
+    .then(function () {
+        return promiseReadDir(playbill.filePath);
+    })
     .then(function (paths) {
         // Filter out paths that don't have our file extension.
         return _.filter(paths, function (filename) {
@@ -171,13 +178,19 @@ function _getPosts(app) {
 
     return function getPosts(req, res, next) {
         var type = req.param('type') || 'html',
-            page = parseInt(req.param('page'), 10) || 1;
+            page = parseInt(req.param('page'), 10);
 
         playbill.listPosts({
             page: page
         })
         .then(function (data) {
             var posts = data.posts;
+
+            if (!posts.length) {
+                var err = new Error('No posts found.');
+                err.status = 404;
+                return next(err);
+            }
 
             res.locals({
                 listView: true,
