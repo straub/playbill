@@ -52,6 +52,18 @@ describe('HTTP', function () {
                     done();
                 });
             });
+            it('response should have page number', function (done) {
+                request
+                .get(url+'.json')
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    res.body.currentPage.should.be.a('number');
+                    res.body.currentPage.should.equal(1);
+
+                    done();
+                });
+            });
         });
     });
     describe('GET /p:page/', function () {
@@ -94,6 +106,18 @@ describe('HTTP', function () {
                     res.body.posts.should.be.an('array');
                     res.body.posts.should.not.be.empty;
                     res.body.total.should.be.a('number');
+
+                    done();
+                });
+            });
+            it('response should have page number', function (done) {
+                request
+                .get(url+'.json')
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    res.body.currentPage.should.be.a('number');
+                    res.body.currentPage.should.equal(1);
 
                     done();
                 });

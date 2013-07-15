@@ -178,7 +178,7 @@ function _getPosts(app) {
 
     return function getPosts(req, res, next) {
         var type = req.param('type') || 'html',
-            page = parseInt(req.param('page'), 10);
+            page = parseInt(req.param('page'), 10) || 1;
 
         playbill.listPosts({
             page: page
