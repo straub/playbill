@@ -11,7 +11,9 @@ var express = require('express'),
     nodefn = require('when/node/function'),
     yaml = require('js-yaml'),
     arrayQuery = require('array-query'),
-    truncate = require('html-truncate');
+    truncate = require('html-truncate'),
+    Post = require('./post'),
+    PostIndex = require('./post-index');
 
 function Playbill(options) {
     this.options = options = options || {};
@@ -33,6 +35,8 @@ function Playbill(options) {
     this.client = options.client && typeof options.client === 'string' ?
         options.client :
         true;
+
+    this.index = new PostIndex(_.extend({}, options, { playbill: this }));
 
     this.app = options.app || express();
 
@@ -83,19 +87,6 @@ Playbill.prototype.init = function init(app) {
     }
 };
 
-var promiseReadDir = nodefn.lift(fs.readdir),
-    promiseOpen = nodefn.lift(fs.open),
-    promiseClose = nodefn.lift(fs.close);
-
-function _isReadable(path) {
-    var def = when.defer();
-    fs.open(path, 'r', function (err) {
-        def.resolve(!err);
-        // FIXME?: Do I need to close this?
-    });
-    return def.promise;
-}
-
 Playbill.prototype.listPosts = function listPosts(options) {
     var playbill = this,
         limit,
@@ -113,37 +104,10 @@ Playbill.prototype.listPosts = function listPosts(options) {
         offset = options.perPage * (options.page - 1);
     })
     .then(function () {
-        return promiseReadDir(playbill.filePath);
+        return playbill.index.init();
     })
-    .then(function (paths) {
-        // Filter out paths that don't have our file extension.
-        return _.filter(paths, function (filename) {
-            return playbill.extRegex.test(filename);
-        });
-    })
-    .then(function (paths) {
-        // A promise to check readability for every path.
-        return when.all(_.map(paths, function (filename) {
-            return _isReadable(path.join(playbill.filePath, filename));
-        }))
-        .then(function (postsReadable) {
-            // Filter out paths that aren't readable to our process.
-            return _.filter(paths, function (file, index) {
-                return postsReadable[index];
-            });
-        });
-    })
-    .then(function (paths) {
-        // Load all posts that weren't filtered out above.
-        return when.all(_.map(paths, function (filename) {
-            return playbill._loadPost(filename.replace(playbill.extRegex, ''));
-        }));
-    })
-    .then(function (rawPosts) {
-        // Parse loaded posts.
-        return when.all(_.map(rawPosts, function (rawPost) {
-            return playbill._parsePost(rawPost);
-        }));
+    .then(function (index) {
+        return index.posts;
     })
     .then(function (posts) {
         total = posts.length;
@@ -269,8 +233,6 @@ Playbill.metaRegex = /^(---[\s\S]+)---/;
 
 var promiseStat = nodefn.lift(fs.stat);
 
-Playbill.liftMeta = ['title','created','published'];
-
 Playbill.prototype._parseMeta = function _parseMeta(post) {
     var playbill = this;
 
@@ -311,18 +273,15 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
         return post;
     })
     .then(function (post) {
-        _.each(Playbill.liftMeta, function (key) {
+        _.each(Post.liftMeta, function (key) {
             post[key] = post.meta[key];
         });
         return post;
     });
 };
 
-Playbill.safeKeys = ['slug','title','created','meta','html'];
-
 Playbill.prototype._sanitizePost = function _sanitizePost(unsafePost) {
-    var safePost = _.pick(unsafePost, Playbill.safeKeys);
-    return safePost;
+    return (unsafePost.toJSON ? unsafePost : new Post(unsafePost)).toJSON();
 };
 
 Playbill.prototype.fetchPost = function fetchPost(slug) {
@@ -344,7 +303,18 @@ function _getPost(app) {
         var slug = req.param('slug'),
             type = req.param('type');
 
-        playbill.fetchPost(slug)
+        playbill.index.init()
+        .then(function (index) {
+            return index.get(slug);
+        })
+        .then(function (post) {
+            if (!post) {
+                var err = new Error('Post not found.');
+                err.status = 404;
+                throw err;
+            }
+            return post;
+        })
         .then(function (post) {
             switch (type) {
                 case "json":
