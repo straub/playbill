@@ -170,7 +170,7 @@ function _getPosts(app) {
                     when.map(posts, function (post) {
                         return _render(post.meta.view || playbill.defaultPostView, { post: post })
                         .then(function (html) {
-                            post.html = html;
+                            post.rendered = html;
 
                             return post;
                         });
@@ -320,7 +320,7 @@ function _getPost(app) {
                 case "json":
                     nodefn.call(res.render.bind(res), post.meta.view || playbill.defaultPostView, { post: post })
                     .then(function (html) {
-                        post.html = html;
+                        post.rendered = html;
 
                         return res.send(200, post);
                     })
