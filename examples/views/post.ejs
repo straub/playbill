@@ -3,4 +3,4 @@
 <% } else { %>
     <h2><a href="/blog/<%= post.slug %>"><%= post.title || 'Post' %></a></h2>
 <% } %>
-<%- listView ? truncate(post.rendered, 150) : post.rendered %>
+<%- listView ? truncate(post.content, 150) : post.content %>

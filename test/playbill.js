@@ -59,8 +59,8 @@ describe('Playbill', function () {
         it('should have meta', function () {
             return parsedPost.should.have.property('meta');
         });
-        it('should have html', function () {
-            return parsedPost.should.have.property('html');
+        it('should have content', function () {
+            return parsedPost.should.have.property('content');
         });
         it('should have path', function () {
             return parsedPost.should.have.property('path');

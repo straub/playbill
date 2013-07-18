@@ -223,7 +223,7 @@ Playbill.prototype._parsePost = function _parsePost(rawPost) {
     .then(function (post) {
         return promiseMarked(post.raw, playbill.markedOptions)
         .then(function (postHTML) {
-            post.html = postHTML;
+            post.content = postHTML;
             return post;
         });
     });
