@@ -316,6 +316,12 @@ function _getPost(app) {
             return post;
         })
         .then(function (post) {
+            // Don't cache unpublished posts.
+            if (!post.published) res.set('Cache-Control', 'no-cache');
+
+            return post;
+        })
+        .then(function (post) {
             switch (type) {
                 case "json":
                     nodefn.call(res.render.bind(res), post.meta.view || playbill.defaultPostView, { post: post })
