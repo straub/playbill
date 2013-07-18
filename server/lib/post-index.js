@@ -10,8 +10,9 @@ var fs = require('graceful-fs'),
 function PostIndex(options) {
     this.options = options = options || {};
 
-    this.posts = undefined;
+    this.initPromise = undefined;
 
+    this.posts = undefined;
     this._postsBySlug = Object.create(null);
 }
 
@@ -24,9 +25,10 @@ PostIndex.prototype.get = function get(slug) {
     return this._postsBySlug[slug];
 };
 
-PostIndex.prototype.list = function () {
-    if (!this.posts) this.posts = this.populate();
-    return this.posts;
+PostIndex.prototype.init = function () {
+    var self = this;
+    if (!this.initPromise) this.initPromise = this.populate();
+    return this.initPromise;
 };
 
 var promiseOpen = nodefn.lift(fs.open),
@@ -87,7 +89,7 @@ PostIndex.prototype.populate = function populate() {
             self._postsBySlug[post.get('slug')] = post;
         });
 
-        return posts;
+        return self;
     });
 };
 

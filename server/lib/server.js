@@ -104,7 +104,10 @@ Playbill.prototype.listPosts = function listPosts(options) {
         offset = options.perPage * (options.page - 1);
     })
     .then(function () {
-        return playbill.index.list();
+        return playbill.index.init();
+    })
+    .then(function (index) {
+        return index.posts;
     })
     .then(function (posts) {
         total = posts.length;
@@ -300,7 +303,18 @@ function _getPost(app) {
         var slug = req.param('slug'),
             type = req.param('type');
 
-        playbill.fetchPost(slug)
+        playbill.index.init()
+        .then(function (index) {
+            return index.get(slug);
+        })
+        .then(function (post) {
+            if (!post) {
+                var err = new Error('Post not found.');
+                err.status = 404;
+                throw err;
+            }
+            return post;
+        })
         .then(function (post) {
             switch (type) {
                 case "json":
