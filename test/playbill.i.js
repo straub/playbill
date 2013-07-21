@@ -65,6 +65,15 @@ describe('HTTP', function () {
                 });
             });
         });
+    });describe('GET /rss.xml', function () {
+        var url = '/rss.xml';
+
+        it('should respond with xml', function (done) {
+            request
+            .get(url)
+            .expect('Content-Type', /xml/)
+            .expect(200, done);
+        });
     });
     describe('GET /p:page/', function () {
         var url = '/p1/',

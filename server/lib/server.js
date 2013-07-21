@@ -12,11 +12,19 @@ var express = require('express'),
     yaml = require('js-yaml'),
     arrayQuery = require('array-query'),
     truncate = require('html-truncate'),
+    RSS = require('rss'),
     Post = require('./post'),
     PostIndex = require('./post-index');
 
 function Playbill(options) {
     this.options = options = options || {};
+
+    this.name = options.name || 'Playbill Blog';
+    this.description = options.description || '';
+    this.author = options.author || '';
+    this.language = options.language || 'en';
+    this.categories = options.categories || [];
+
     this.filePath = options.filePath || path.join(process.cwd(), 'posts');
     this.ext = options.ext || '.md';
     this.extRegex = new RegExp('\\'+this.ext+'$', 'i');
@@ -67,10 +75,13 @@ Playbill.prototype.init = function init(app) {
 
     app.disable('x-powered-by');
     app.use(express.bodyParser());
+    app.use(determineSiteURL);
     app.use(app.router);
 
     var getPostsRoute = _getPosts.call(playbill, app);
+    var getFeedRoute = _getFeed.call(playbill, app);
     app.get('/', getPostsRoute);
+    app.get('/rss.xml', getFeedRoute);
     app.get('/.:type(json)', getPostsRoute);
     app.get('/p:page([1-9][0-9]{0,})/', getPostsRoute);
     app.get('/p:page([1-9][0-9]{0,})/.:type(json)', getPostsRoute);
@@ -86,6 +97,37 @@ Playbill.prototype.init = function init(app) {
         });
     }
 };
+
+function determineSiteURL(req, res, next){
+    var siteURL,
+        scheme = req.header("X-Originally-SSL") ? "https" : (req.protocol || "http"),
+        host = req.header("X-Forwarded-Host") || req.header("Host") || "",
+        port = req.header("X-Forwarded-Port") || req.app.get("port"),
+        hosts = host.split(/, ?/);
+
+    if (hosts.length > 1) {
+        host = hosts[-1];
+        /*if(!/^http/.test(host)){
+            var protocol = hosts[0].match(/(^https?:\/\/)/)[0];
+            host = protocol + host;
+        }*/
+    }
+
+    if (!host) {
+        host = hostname || "localhost";
+        if (port) {
+            if (!((scheme === "https" && port === 443) || (scheme !== "https" && port === 80))) {
+                host += ":"+port;
+            }
+        }
+    }
+
+    host = (scheme === "https" ? "https://" : "http://") + host;
+
+    res.locals.siteURL = siteURL = host + "/";
+
+    return next ? next() : siteURL;
+}
 
 Playbill.prototype.listPosts = function listPosts(options) {
     var playbill = this,
@@ -184,6 +226,94 @@ function _getPosts(app) {
                     res.render(playbill.defaultWrapperView, { posts: posts });
                     break;
             }
+        })
+        .otherwise(function (err) {
+            next(err);
+        });
+    };
+}
+
+function _getFeed(app) {
+    var playbill = this;
+
+    var feed = new RSS({
+        title: playbill.name,
+        description: playbill.description,
+
+        // These values are replaced in the context of the request.
+        feed_url: 'PLACEHOLDER',
+        site_url: 'PLACEHOLDER',
+
+        author: playbill.author,
+        language: playbill.language,
+        categories: playbill.categories,
+        ttl: 60 // 1 hour
+    });
+
+    return function getFeed(req, res, next) {
+
+        // Clear feed items
+        feed.items.length = 0;
+
+        // Get our actual URL.
+        var url = req.originalUrl;
+        url = url.replace(/^\//, '');
+        url = url.replace(/rss\.xml.*$/, '');
+        var siteURL = res.locals.siteURL+url;
+
+        feed.site_url = siteURL;
+        feed.feed_url = siteURL+'rss.xml';
+
+        var page = 1;
+
+        playbill.listPosts({
+            page: page
+        })
+        .then(function (data) {
+            var posts = data.posts;
+
+            if (!posts.length) {
+                var err = new Error('No posts found.');
+                err.status = 404;
+                return next(err);
+            }
+
+            res.locals({
+                listView: true,
+                total: data.total,
+                pages: Math.round(data.total/playbill.perPage),
+                currentPage: page
+            });
+
+            var _render = nodefn.lift(res.render.bind(res));
+
+            when.map(posts, function (post) {
+                return _render(post.meta.view || playbill.defaultPostView, { post: post })
+                .then(function (html) {
+                    post.html = html;
+
+                    return post;
+                });
+            })
+            .then(function (posts) {
+                _.each(posts, function (post) {
+                    feed.item({
+                        title:  post.title,
+                        description: post.html,
+                        url: siteURL+post.slug,
+                        author: post.author || '', // Defaults to feed author property
+                        date: post.created // any format that js Date can parse.
+                    });
+                });
+
+                // Setting the appropriate Content-Type
+                res.set('Content-Type', 'text/xml');
+
+                // This feed can be cached for the length of its ttl.
+                res.set('Cache-Control', 'public, max-age=' + (feed.ttl*60));
+
+                res.send(feed.xml());
+            });
         })
         .otherwise(function (err) {
             next(err);
