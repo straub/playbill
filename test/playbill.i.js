@@ -52,6 +52,52 @@ describe('HTTP', function () {
                     done();
                 });
             });
+            it('response should have published posts', function (done) {
+                request
+                .get(url+'.json')
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    res.body.posts.should.contain.an.item.with.property('title', 'Test Post');
+                    res.body.posts.should.contain.an.item.with.property('title', 'Test Post 2');
+                    res.body.posts.should.contain.an.item.with.property('title', 'Test Post Foo');
+                    res.body.posts.should.contain.an.item.with.property('title', 'Test Post Bar');
+                    res.body.posts.should.contain.an.item.with.property('title', 'Test Post Past Publication');
+
+                    done();
+                });
+            });
+            it('response should not have unpublished posts', function (done) {
+                request
+                .get(url+'.json')
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    res.body.posts.should.not.contain.an.item.with.property('title', 'Test Post Unpublished');
+                    res.body.posts.should.not.contain.an.item.with.property('title', 'Test Post Future Publication');
+
+                    done();
+                });
+            });
+            it('response should have posts in order of publication, creation', function (done) {
+                request
+                .get(url+'.json')
+                .end(function (err, res) {
+                    if (err) return done(err);
+
+                    res.body.posts.forEach(function (post, i, posts) {
+                        if (i < 1) return;
+
+                        var postDate = new Date(post.published),
+                            prev = posts[i-1],
+                            prevDate = new Date(prev.published);
+
+                        postDate.should.be.at.most(prevDate);
+                    });
+
+                    done();
+                });
+            });
             it('response should have page number', function (done) {
                 request
                 .get(url+'.json')

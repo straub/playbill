@@ -7,6 +7,9 @@ var chai = require("chai"),
 mochaAsPromised();
 
 global.should = chai.should();
+
+chai.use(require('chai-things'));
+
 chai.use(chaiAsPromised);
 
 global.expect = chai.expect;

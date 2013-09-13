@@ -154,8 +154,20 @@ Playbill.prototype.listPosts = function listPosts(options) {
     .then(function (posts) {
         total = posts.length;
 
-        // Apply query options.
-        posts = arrayQuery('published').is(true)
+        function postPublishedFilter(post, i, posts) {
+            // If it's falsy, we can stop right now.
+            if (!post.published) return false;
+
+            // Else it should be a date and we check that it's now or past.
+            return post.published <= (new Date());
+        }
+
+        // Apply filter options.
+        posts = posts.filter(postPublishedFilter);
+
+        // Apply sort options.
+        posts = arrayQuery()
+        .sort('published').date().desc()
         .sort('created').date().desc()
         .sort('title')
         .on(posts);
@@ -400,6 +412,17 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
                 return post;
             });
         }
+        return post;
+    })
+    .then(function (post) {
+        if (post.meta.published === true) {
+            post.meta.published = post.meta.created;
+        } else if (post.meta.published) {
+            post.meta.published = new Date(post.meta.published);
+        } else {
+            post.meta.published = false;
+        }
+
         return post;
     })
     .then(function (post) {
