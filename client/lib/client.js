@@ -127,12 +127,18 @@
         $(root.document).on('click.playbill', 'a', function (e) {
             if (e.meta || e.ctrlKey) return; // Don't block user if they want to open a new tab.
 
-            var href = $(this).attr('href');
+            if (!(
+                this.protocol === root.location.protocol &&
+                this.hostname === root.location.hostname &&
+                this.port === root.location.port
+            )) return;
 
-            if (href && playbill.baseRegex.test(href)) {
+            var path = this.pathname.replace(/^([^\/])/,'/$1');
+
+            if (path && playbill.baseRegex.test(path)) {
                 e.preventDefault();
                 
-                playbill.navigate(href);
+                playbill.navigate(path);
             }
         });
     };
