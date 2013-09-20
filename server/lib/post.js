@@ -13,9 +13,9 @@ function Post(data, options) {
     });
 }
 
-Post.liftMeta = ['title','created','published','author'];
+Post.liftMeta = ['title','lastModified','published','author'];
 
-Post.safeKeys = ['slug','title','created','published','author','meta','content','html'];
+Post.safeKeys = ['slug','title','lastModified','published','author','meta','content','html'];
 
 Post.prototype.toJSON = function toJSON() {
     var safePost = _.pick(this, Post.safeKeys);

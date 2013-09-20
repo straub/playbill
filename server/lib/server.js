@@ -168,7 +168,7 @@ Playbill.prototype.listPosts = function listPosts(options) {
         // Apply sort options.
         posts = arrayQuery()
         .sort('published').date().desc()
-        .sort('created').date().desc()
+        .sort('lastModified').date().desc()
         .sort('title')
         .on(posts);
 
@@ -314,7 +314,7 @@ function _getFeed(app) {
                         description: post.html,
                         url: siteURL+post.slug,
                         author: post.author || '', // Defaults to feed author property
-                        date: post.created // any format that js Date can parse.
+                        date: post.published // any format that js Date can parse.
                     });
                 });
 
@@ -399,16 +399,16 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
         return post;
     })
     .then(function (post) {
-        if (post.meta.created) {
-            post.meta.created = new Date(post.meta.created);
+        if (post.meta.lastModified) {
+            post.meta.lastModified = new Date(post.meta.lastModified);
         }
         return post;
     })
     .then(function (post) {
-        if (!post.meta.created && post.path) {
+        if (!post.meta.lastModified && post.path) {
             return promiseStat(post.path)
             .then(function (stat) {
-                post.meta.created = stat.ctime;
+                post.meta.lastModified = stat.mtime;
                 return post;
             });
         }
@@ -416,7 +416,7 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
     })
     .then(function (post) {
         if (post.meta.published === true) {
-            post.meta.published = post.meta.created;
+            post.meta.published = post.meta.lastModified;
         } else if (post.meta.published) {
             post.meta.published = new Date(post.meta.published);
         } else {

@@ -97,8 +97,11 @@ describe('Playbill', function () {
         it('should have meta with title', function () {
             return parsedPost.meta.should.have.property('title');
         });
-        it('should have meta with created', function () {
-            return parsedPost.meta.should.have.property('created');
+        it('should have meta with lastModified', function () {
+            return parsedPost.meta.should.have.property('lastModified');
+        });
+        it('should have meta with published', function () {
+            return parsedPost.meta.should.have.property('published');
         });
     });
 });
