@@ -69,6 +69,9 @@ function Playbill(options) {
     this._initApp(this.app);
 
     this.app.on('mount', function (parent) {
+        // Copy locals to parent app.
+        parent.locals(locals);
+
         // Copy parent views configuration.
         playbill.app.set('views', parent.get('views'));
         playbill.app.set('view engine', parent.get('view engine'));
