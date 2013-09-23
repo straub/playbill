@@ -17,6 +17,8 @@ var express = require('express'),
     PostIndex = require('./post-index');
 
 function Playbill(options) {
+    var playbill = this;
+
     this.options = options = options || {};
 
     this.name = options.name || 'Playbill Blog';
@@ -48,10 +50,7 @@ function Playbill(options) {
 
     this.app = options.app || express();
 
-    if (options.views) this.app.set('views', options.views);
-    if (options.viewEngine) this.app.set('view engine', options.viewEngine);
-
-    this.app.locals({
+    var locals = {
         truncate: truncate,
 
         // listView is false unless overridden later.
@@ -63,17 +62,24 @@ function Playbill(options) {
         total: 0,
         pages: 0,
         currentPage: 0
-    });
+    };
 
-    this.init(this.app);
+    this.app.locals(locals);
+
+    this._initApp(this.app);
+
+    this.app.on('mount', function (parent) {
+        // Copy parent views configuration.
+        playbill.app.set('views', parent.get('views'));
+        playbill.app.set('view engine', parent.get('view engine'));
+    });
 
     return this;
 }
 
-Playbill.prototype.init = function init(app) {
+Playbill.prototype._initApp = function _initApp(app) {
     var playbill = this;
 
-    app.disable('x-powered-by');
     app.use(express.bodyParser());
     app.use(determineSiteURL);
     app.use(app.router);

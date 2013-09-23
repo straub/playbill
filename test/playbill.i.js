@@ -1,12 +1,9 @@
 
 var Playbill = require('../'),
     path = require('path'),
-    playbill = new Playbill({
-        filePath: path.join(__dirname, '../examples/posts'),
-        views: path.join(__dirname, '../examples/views'),
-        viewEngine: 'ejs'
-    }),
-    request = require('./support/http')(playbill.app);
+    app = require('../examples/server');
+
+var request = require('./support/http')(app);
 
 describe('HTTP', function () {
 
