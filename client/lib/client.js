@@ -28,9 +28,7 @@
         var playbill = this;
 
         if (options.url) {
-            // Works around servers that deny requests to "files"
-            // that start with a dot.
-            options.url += /\/$/.test(options.url) ? '?type=json' : '.json';
+            options.url += /\/$/.test(options.url) ? 'index.json' : '.json';
         }
 
         return when($.ajax(_.extend({

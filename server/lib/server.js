@@ -91,7 +91,7 @@ Playbill.prototype._initApp = function _initApp(app) {
     var getFeedRoute = _getFeed.call(playbill, app);
     app.get('/', getPostsRoute);
     app.get('/rss.xml', getFeedRoute);
-    app.get('/.:type(json)', getPostsRoute);
+    app.get('/index.:type(json)', getPostsRoute);
     app.get('/p:page([1-9][0-9]{0,})/', getPostsRoute);
     app.get('/p:page([1-9][0-9]{0,})/.:type(json)', getPostsRoute);
 

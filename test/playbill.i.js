@@ -21,13 +21,13 @@ describe('HTTP', function () {
         describe('json', function () {
             it('should respond with json', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .expect('Content-Type', /json/)
                 .expect(200, done);
             });
             it('response should be an object', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
@@ -38,7 +38,7 @@ describe('HTTP', function () {
             });
             it('response should have posts', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
@@ -51,7 +51,7 @@ describe('HTTP', function () {
             });
             it('response should have published posts', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
@@ -66,7 +66,7 @@ describe('HTTP', function () {
             });
             it('response should not have unpublished posts', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
@@ -78,7 +78,7 @@ describe('HTTP', function () {
             });
             it('response should have posts in order of publication, creation', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
@@ -97,7 +97,7 @@ describe('HTTP', function () {
             });
             it('response should have page number', function (done) {
                 request
-                .get(url+'.json')
+                .get(url+'index.json')
                 .end(function (err, res) {
                     if (err) return done(err);
 
