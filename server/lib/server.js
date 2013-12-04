@@ -42,7 +42,7 @@ function Playbill(options) {
         smartLists: true
     }, options.markedOptions);
 
-    this.client = options.client && typeof options.client === 'string' ?
+    this.client = typeof options.client !== 'undefined' ?
         options.client :
         true;
 
