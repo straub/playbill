@@ -124,11 +124,11 @@ describe('HTTP', function () {
             tooHighUrl = '/p100000/';
 
         describe('html', function () {
-            it('should respond with html', function (done) {
+            it('should redirect to index', function (done) {
                 request
                 .get(url)
-                .expect('Content-Type', /html/)
-                .expect(200, done);
+                .expect('Location', '..')
+                .expect(301, done);
             });
         });
         describe('json', function () {
@@ -137,6 +137,12 @@ describe('HTTP', function () {
                 .get(url+'.json')
                 .expect('Content-Type', /json/)
                 .expect(200, done);
+            });
+            it('should redirect to index with query string', function (done) {
+                request
+                .get(url+'?type=json')
+                .expect('Location', '..?type=json')
+                .expect(301, done);
             });
             it('response should be an object', function (done) {
                 request

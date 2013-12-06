@@ -92,6 +92,12 @@ Playbill.prototype._initApp = function _initApp(app) {
     app.get('/', getPostsRoute);
     app.get('/rss.xml', getFeedRoute);
     app.get('/index.:type(json)', getPostsRoute);
+    app.get('/p1/', function (req, res) {
+        console.log(req.originalUrl);
+        var qs = req.originalUrl.replace(/^[^\?]+(\?)?/, '$1');
+        res.writeHead(301, { 'Location': '..' + qs });
+        return res.end();
+    });
     app.get('/p:page([1-9][0-9]{0,})/', getPostsRoute);
     app.get('/p:page([1-9][0-9]{0,})/.:type(json)', getPostsRoute);
 
