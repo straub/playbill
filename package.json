@@ -25,15 +25,15 @@
   ],
   "dependencies": {
     "express": "~3.4.0",
-    "marked": "~0.2.9",
+    "marked": "~0.3.1",
     "ejs": "~0.8.4",
-    "when": "~2.4.0",
+    "when": "~2.8.0",
     "underscore": "~1.5.2",
-    "js-yaml": "~2.1.0",
+    "js-yaml": ">=2.1.0 <3",
     "graceful-fs": "~2.0.1",
     "array-query": "~0.1.0",
     "html-truncate": "~1.0.3",
-    "rss": "~0.2.0"
+    "rss": "~0.3.2"
   },
   "devDependencies": {
     "mocha": "~1.13.0",
