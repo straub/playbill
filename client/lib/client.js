@@ -116,6 +116,11 @@
         })
         .then(function (data) {
             playbill.trigger('loaded', data, url);
+        })
+        .otherwise(function (err) {
+            // URL didn't respond properly to Playbill's
+            // pjax request, try the URL directly.
+            window.location = url;
         });
     };
 
