@@ -113,7 +113,7 @@ Playbill.prototype._initApp = function _initApp(app) {
     }
 };
 
-function determineSiteURL(req, res, next){
+function determineSiteURL(req, res, next) {
     var siteURL,
         scheme = req.header("X-Originally-SSL") ? "https" : (req.protocol || "http"),
         host = req.header("X-Forwarded-Host") || req.header("Host") || "",
@@ -122,10 +122,6 @@ function determineSiteURL(req, res, next){
 
     if (hosts.length > 1) {
         host = hosts[-1];
-        /*if(!/^http/.test(host)){
-            var protocol = hosts[0].match(/(^https?:\/\/)/)[0];
-            host = protocol + host;
-        }*/
     }
 
     if (!host) {
@@ -153,6 +149,7 @@ Playbill.prototype.listPosts = function listPosts(options) {
     options = options || {};
 
     return when(options)
+
     .then(function (options) {
         options.page = options.page || 1;
         options.perPage = options.perPage || playbill.perPage;
@@ -160,50 +157,59 @@ Playbill.prototype.listPosts = function listPosts(options) {
         limit = options.perPage;
         offset = options.perPage * (options.page - 1);
     })
-    .then(function () {
-        return playbill.index.init();
-    })
+
+    .then(playbill.index.init.bind(playbill.index))
+
     .then(function (index) {
-        return index.posts;
+        total = index.posts.length;
+
+        return [index.posts, limit, offset];
     })
-    .then(function (posts) {
-        total = posts.length;
+    .spread(playbill._filterPostsList.bind(playbill))
 
-        function postPublishedFilter(post, i, posts) {
-            // If it's falsy, we can stop right now.
-            if (!post.published) return false;
+    .then(playbill._sanitizePostsList.bind(playbill))
 
-            // Else it should be a date and we check that it's now or past.
-            return post.published <= (new Date());
-        }
-
-        // Apply filter options.
-        posts = posts.filter(postPublishedFilter);
-
-        // Apply sort options.
-        posts = arrayQuery()
-        .sort('published').date().desc()
-        .sort('lastModified').date().desc()
-        .sort('title')
-        .on(posts);
-
-        // Replace broken array-query .offset() implementation.
-        posts = posts.slice(offset, limit ? offset+limit : undefined);
-
-        return posts;
-    })
-    .then(function (unsafePosts) {
-        // Sanitize parsed posts.
-        return when.all(_.map(unsafePosts, function (unsafePost) {
-            return playbill._sanitizePost(unsafePost);
-        }));
-    })
     .then(function (posts) {
         return {
             total: total,
             posts: posts
         };
     });
+};
+
+Playbill.prototype._filterPostsList = function _filterPostsList(posts, limit, offset) {
+    var playbill = this;
+
+    // Apply filter options.
+    posts = posts.filter(playbill._postPublishedFilter.bind(playbill));
+
+    // Apply sort options.
+    posts = arrayQuery()
+    .sort('published').date().desc()
+    .sort('lastModified').date().desc()
+    .sort('title')
+    .on(posts);
+
+    // Replace broken array-query .offset() implementation.
+    posts = posts.slice(offset, limit ? offset+limit : undefined);
+
+    return posts;
+};
+
+Playbill.prototype._postPublishedFilter = function _postPublishedFilter(post, i, posts) {
+    // If it's falsy, we can stop right now.
+    if (!post.published) return false;
+
+    // Else it should be a date and we check that it's now or past.
+    return post.published <= (new Date());
+};
+
+Playbill.prototype._sanitizePostsList = function _sanitizePostsList(unsafePosts) {
+    var playbill = this;
+
+    return when.all(
+        _.map(unsafePosts, playbill._sanitizePost.bind(playbill))
+    );
 };
 
 function _getPosts(app) {
@@ -358,6 +364,7 @@ var promiseReadFile = nodefn.lift(fs.readFile);
 Playbill.prototype._loadPost = function _loadPost(slug) {
     var playbill = this,
         path = playbill._path(slug);
+
     return promiseReadFile(path, 'utf8')
     .then(function (string) {
         return {
@@ -374,9 +381,7 @@ Playbill.prototype._parsePost = function _parsePost(rawPost) {
     var playbill = this;
 
     return when(rawPost)
-    .then(function (rawPost) {
-        return playbill._parseMeta(rawPost);
-    })
+    .then(playbill._parseMeta.bind(playbill))
     .then(function (post) {
         return promiseMarked(post.raw, playbill.markedOptions)
         .then(function (postHTML) {
@@ -394,58 +399,70 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
     var playbill = this;
 
     return when(post)
-    .then(function (post) {
-        post.meta = {};
+    .then(playbill._parseMetaYaml.bind(playbill))
+    .then(playbill._parseMetaLastModified.bind(playbill))
+    .then(playbill._parseMetaPublished.bind(playbill))
+    .then(playbill._parseMetaLift.bind(playbill));
+};
 
-        var metaMatch = post.raw.match(Playbill.metaRegex);
-        if (metaMatch && metaMatch.length > 1) {
-            post.meta = metaMatch[1];
+Playbill.prototype._parseMetaYaml = function _parseMetaYaml(post) {
 
-            try{
-                post.meta = yaml.safeLoad(post.meta);
-            } catch(e) {
-                console.error(e);
-                post.meta = {};
-            }
+    var metaMatch = post.raw.match(Playbill.metaRegex);
 
-            post.raw = post.raw.replace(Playbill.metaRegex, '');
+    if (metaMatch && metaMatch.length > 1) {
+        var yamlStr = metaMatch[1];
+
+        try{
+            post.meta = yaml.safeLoad(yamlStr);
+        } catch(e) {
+            console.error(e);
         }
 
-        return post;
-    })
-    .then(function (post) {
-        if (post.meta.lastModified) {
-            post.meta.lastModified = new Date(post.meta.lastModified);
-        }
-        return post;
-    })
-    .then(function (post) {
-        if (!post.meta.lastModified && post.path) {
-            return promiseStat(post.path)
-            .then(function (stat) {
-                post.meta.lastModified = stat.mtime;
-                return post;
-            });
-        }
-        return post;
-    })
-    .then(function (post) {
-        if (post.meta.published === true) {
-            post.meta.published = post.meta.lastModified;
-        } else if (post.meta.published) {
-            post.meta.published = new Date(post.meta.published);
-        } else {
-            post.meta.published = false;
-        }
+        post.raw = post.raw.replace(Playbill.metaRegex, '');
+    }
 
-        return post;
-    })
-    .then(function (post) {
-        _.each(Post.liftMeta, function (key) {
-            post[key] = post.meta[key];
+    if (!post.meta) post.meta = {};
+
+    return post;
+};
+
+Playbill.prototype._parseMetaLastModified = function _parseMetaLastModified(post) {
+
+    if (post.meta.lastModified) {
+        post.meta.lastModified = new Date(post.meta.lastModified);
+    }
+
+    if (!post.meta.lastModified && post.path) {
+        return promiseStat(post.path)
+        .then(function (stat) {
+            post.meta.lastModified = stat.mtime;
+            return post;
         });
-        return post;
+    }
+
+    return post;
+};
+
+Playbill.prototype._parseMetaPublished = function _parseMetaPublished(post) {
+
+    if (post.meta.published === true) {
+        post.meta.published = post.meta.lastModified;
+    } else if (post.meta.published) {
+        post.meta.published = new Date(post.meta.published);
+    } else {
+        post.meta.published = false;
+    }
+
+    return post;
+};
+
+Playbill.prototype._parseMetaLift = function _parseMetaLift(post) {
+
+    _.each(Post.liftMeta, function (key) {
+        post[key] = post.meta[key];
     });
+
+    return post;
 };
 
 Playbill.prototype._sanitizePost = function _sanitizePost(unsafePost) {
@@ -456,12 +473,8 @@ Playbill.prototype.fetchPost = function fetchPost(slug) {
     var playbill = this;
 
     return playbill._loadPost(slug)
-    .then(function (rawPost) {
-        return playbill._parsePost(rawPost);
-    })
-    .then(function (unsafePost) {
-        return playbill._sanitizePost(unsafePost);
-    });
+    .then(playbill._parsePost.bind(playbill))
+    .then(playbill._sanitizePost.bind(playbill));
 };
 
 function _getPost(app) {
