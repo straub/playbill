@@ -14,7 +14,8 @@ var express = require('express'),
     truncate = require('html-truncate'),
     RSS = require('rss'),
     Post = require('./post'),
-    PostIndex = require('./post-index');
+    PostIndex = require('./post-index'),
+    hooks = require('./hooks');
 
 function Playbill(options) {
     var playbill = this;
@@ -77,13 +78,15 @@ function Playbill(options) {
         playbill.app.set('view engine', parent.get('view engine'));
     });
 
+    // Add hooks methods to this Playbill instance.
+    _.extend(this, hooks);
+
     return this;
 }
 
 Playbill.prototype._initApp = function _initApp(app) {
     var playbill = this;
 
-    app.use(express.bodyParser());
     app.use(determineSiteURL);
     app.use(app.router);
 
@@ -382,6 +385,7 @@ Playbill.prototype._parsePost = function _parsePost(rawPost) {
 
     return when(rawPost)
     .then(playbill._parseMeta.bind(playbill))
+    .then(playbill._parsePostRaw.bind(playbill))
     .then(function (post) {
         return promiseMarked(post.raw, playbill.markedOptions)
         .then(function (postHTML) {
@@ -389,6 +393,11 @@ Playbill.prototype._parsePost = function _parsePost(rawPost) {
             return post;
         });
     });
+};
+
+Playbill.prototype._parsePostRaw = function _parsePostRaw(post) {
+    // Implemented only for use by hooks.
+    return post;
 };
 
 Playbill.metaRegex = /^(---[\s\S]+)---/;
@@ -402,6 +411,7 @@ Playbill.prototype._parseMeta = function _parseMeta(post) {
     .then(playbill._parseMetaYaml.bind(playbill))
     .then(playbill._parseMetaLastModified.bind(playbill))
     .then(playbill._parseMetaPublished.bind(playbill))
+    .then(playbill._parseMetaExtra.bind(playbill))
     .then(playbill._parseMetaLift.bind(playbill));
 };
 
@@ -453,6 +463,11 @@ Playbill.prototype._parseMetaPublished = function _parseMetaPublished(post) {
         post.meta.published = false;
     }
 
+    return post;
+};
+
+Playbill.prototype._parseMetaExtra = function _parseMetaExtra(post) {
+    // Implemented only for use by hooks.
     return post;
 };
 
