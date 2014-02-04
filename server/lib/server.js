@@ -400,7 +400,7 @@ Playbill.prototype._parsePostRaw = function _parsePostRaw(post) {
     return post;
 };
 
-Playbill.metaRegex = /^(---[\s\S]+)---/;
+Playbill.metaRegex = /^(---\s*\n[\s\S]+?)\n---/;
 
 var promiseStat = nodefn.lift(fs.stat);
 
