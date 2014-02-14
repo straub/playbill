@@ -1,2 +1,6 @@
 test/
 examples/
+
+.travis.yml
+.jshintrc
+
