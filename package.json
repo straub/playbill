@@ -29,7 +29,7 @@
     "ejs": "~0.8.4",
     "when": "~2.8.0",
     "underscore": "~1.5.2",
-    "js-yaml": "~3.0.1",
+    "js-yaml": "~3.14.1",
     "graceful-fs": "~2.0.1",
     "array-query": "~0.1.0",
     "html-truncate": "~1.0.3",
