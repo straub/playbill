@@ -28,7 +28,7 @@
     "marked": "~0.3.1",
     "ejs": "~0.8.4",
     "when": "~2.8.0",
-    "underscore": "~1.5.2",
+    "underscore": "~1.13.1",
     "js-yaml": "~3.0.1",
     "graceful-fs": "~2.0.1",
     "array-query": "~0.1.0",
